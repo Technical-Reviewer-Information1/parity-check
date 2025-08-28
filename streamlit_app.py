@@ -19,6 +19,21 @@ st.markdown("""
 実際にビットを操作して、エラーの検出から訂正まで体験してみましょう！
 """)
 
+# セッション状態の初期化
+if 'initialized' not in st.session_state:
+    st.session_state.initialized = True
+    # 1次元パリティチェック用の状態
+    st.session_state.transmitted_1d = None
+    st.session_state.parity_mode_1d = None
+    st.session_state.parity_bit_1d = None
+    st.session_state.error_data_1d = None
+    st.session_state.error_position_1d = -1
+    # 2次元パリティチェック用の状態
+    st.session_state.data_matrix = None
+    st.session_state.matrix_with_parity = None
+    st.session_state.error_row = -1
+    st.session_state.error_col = -1
+
 # 1次元パリティチェックセクション
 with st.expander("体験1：1次元パリティチェック 〜エラーを見つける〜", expanded=True):
     st.subheader("🎯 目的")
@@ -27,12 +42,13 @@ with st.expander("体験1：1次元パリティチェック 〜エラーを見�
     # ステップ1: 送信データの準備
     st.markdown("### ステップ1: 送信データの準備")
     
-    # パリティ方式選択
+    # パリティ方式選択（セッションステートに保存）
     parity_mode = st.radio(
         "パリティ方式を選択してください:",
         ["奇数パリティ（データ内の「1」の合計が奇数になるように調整）", 
          "偶数パリティ（データ内の「1」の合計が偶数になるように調整）"],
-        key="1d_parity_mode"
+        key="1d_parity_mode",
+        index=0 if st.session_state.parity_mode_1d is None else (0 if "奇数" in st.session_state.parity_mode_1d else 1)
     )
     
     # 送信データの表示
@@ -59,13 +75,17 @@ with st.expander("体験1：1次元パリティチェック 〜エラーを見�
         st.session_state.parity_mode_1d = parity_mode
         st.session_state.parity_bit_1d = parity_bit
     
+    # 現在の送信データを表示（計算済みの場合）
+    if st.session_state.transmitted_1d is not None:
+        st.success(f"**送信データ (8ビット):** `{st.session_state.transmitted_1d}`")
+    
     # ステップ2: 通信エラーの発生
-    if 'transmitted_1d' in st.session_state:
+    if st.session_state.transmitted_1d is not None:
         st.markdown("### ステップ2: 通信エラーの発生")
         st.markdown("通信中にノイズでビットが反転するエラーを再現してみよう！下のデータのうち、好きなビットを1つクリックして反転させてください。")
         
         # ビット反転インターフェース
-        if 'error_data_1d' not in st.session_state:
+        if st.session_state.error_data_1d is None:
             st.session_state.error_data_1d = st.session_state.transmitted_1d
             st.session_state.error_position_1d = -1
         
@@ -124,8 +144,8 @@ with st.expander("体験2：2次元パリティチェック 〜エラーを見�
         [0, 1, 0, 0]
     ]
     
-    # セッションステートの初期化
-    if 'data_matrix' not in st.session_state:
+    # セッションステートの初期化（2次元用）
+    if st.session_state.data_matrix is None:
         st.session_state.data_matrix = [row[:] for row in initial_matrix]
         st.session_state.matrix_with_parity = None
         st.session_state.error_row = -1
@@ -135,6 +155,16 @@ with st.expander("体験2：2次元パリティチェック 〜エラーを見�
     st.markdown("**データブロック (4x4):**")
     matrix_df = pd.DataFrame(st.session_state.data_matrix)
     st.dataframe(matrix_df, use_container_width=False)
+    
+    # パリティ計算済みの場合は結果を表示
+    if st.session_state.matrix_with_parity is not None:
+        st.success("パリティビットを計算しました！")
+        df_with_parity = pd.DataFrame(
+            st.session_state.matrix_with_parity,
+            columns=['列1', '列2', '列3', '列4', '行パリティ'],
+            index=['行1', '行2', '行3', '行4', '列パリティ']
+        )
+        st.dataframe(df_with_parity, use_container_width=False)
     
     # パリティビット計算
     if st.button("行と列のパリティビットを計算する", key="calc_2d_parity"):
@@ -163,15 +193,6 @@ with st.expander("体験2：2次元パリティチェック 〜エラーを見�
         matrix_with_parity.append(col_parity_row)
         
         st.session_state.matrix_with_parity = matrix_with_parity
-        
-        # 結果表示
-        st.success("パリティビットを計算しました！")
-        df_with_parity = pd.DataFrame(
-            matrix_with_parity,
-            columns=['列1', '列2', '列3', '列4', '行パリティ'],
-            index=['行1', '行2', '行3', '行4', '列パリティ']
-        )
-        st.dataframe(df_with_parity, use_container_width=False)
     
     # ステップ2: 通信エラーの発生
     if st.session_state.matrix_with_parity is not None:
@@ -288,6 +309,39 @@ st.markdown("""
 
 パリティチェックは、私たちの身の回りの多くの技術で使われている重要な仕組みです！
 """)
+
+# リセット機能
+st.markdown("---")
+col1, col2, col3 = st.columns(3)
+with col1:
+    if st.button("🔄 1次元パリティをリセット"):
+        st.session_state.transmitted_1d = None
+        st.session_state.parity_mode_1d = None
+        st.session_state.parity_bit_1d = None
+        st.session_state.error_data_1d = None
+        st.session_state.error_position_1d = -1
+        st.success("1次元パリティチェックをリセットしました！")
+
+with col2:
+    if st.button("🔄 2次元パリティをリセット"):
+        initial_matrix = [
+            [1, 1, 0, 1],
+            [1, 1, 1, 0],
+            [1, 0, 1, 1],
+            [0, 1, 0, 0]
+        ]
+        st.session_state.data_matrix = [row[:] for row in initial_matrix]
+        st.session_state.matrix_with_parity = None
+        st.session_state.error_row = -1
+        st.session_state.error_col = -1
+        st.success("2次元パリティチェックをリセットしました！")
+
+with col3:
+    if st.button("🔄 全体をリセット"):
+        for key in list(st.session_state.keys()):
+            if key != 'initialized':
+                del st.session_state[key]
+        st.success("アプリ全体をリセットしました！")
 
 # 追加の学習リソース
 with st.expander("🔗 さらに学びたい方へ"):
