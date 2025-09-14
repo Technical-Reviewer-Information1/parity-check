@@ -4,7 +4,7 @@ import time
 
 # ページ設定
 st.set_page_config(
-    page_title="パリティチェック学習アプリ",
+    page_title="パリティチェック",
     page_icon="🔍",
     layout="wide"
 )
@@ -178,7 +178,7 @@ def show_statistics():
         ''', unsafe_allow_html=True)
 
 # メインタイトル
-st.title("🔍 パリティチェック学習ラボ")
+st.title("パリティチェック（pp.133-136）")
 st.caption("Created by Dit-Lab.(Daiki ITO)")
 st.caption("Supported by Tomoaki ATSUMI")
 
