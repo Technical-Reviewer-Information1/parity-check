@@ -50,6 +50,31 @@
     </div>
   </section>
 
+  <section class="step" id="stepMine">
+    <h2><span class="no">体験</span>自分の文字を送ってみる</h2>
+    <p class="desc">好きな1文字を入れると、その<strong>文字コード（7ビット）</strong>にパリティビットが付きます。
+      途中でビットを化けさせると、受け取った側で<strong>何の文字になってしまうか</strong>まで分かります。</p>
+    <div class="panel">
+      <div class="btn-row" style="flex-wrap:wrap;align-items:flex-end">
+        <label class="fld" for="myChar" style="margin:0">送りたい文字（半角の英数字・記号）<br>
+          <input type="text" id="myChar" class="mono pin" maxlength="1" value="A" style="width:5em"></label>
+        <button class="btn" data-mc="A">A</button>
+        <button class="btn" data-mc="a">a</button>
+        <button class="btn" data-mc="0">0</button>
+        <button class="btn" data-mc="?">?</button>
+      </div>
+      <div class="note" id="myCode" style="margin-top:12px"></div>
+      <div class="bitrow" id="myBits" style="margin-top:14px"></div>
+      <div class="cnt" id="myCnt"></div>
+      <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
+        <button class="btn" id="myFlip1">1ビット化けさせる</button>
+        <button class="btn" id="myFlip2">2ビット化けさせる</button>
+        <button class="btn ghost" id="myRestore">送ったままに戻す</button>
+      </div>
+      <div class="note" id="myNote" style="margin-top:12px"></div>
+    </div>
+  </section>
+
   <section class="step" id="step3">
     <h2><span class="no">STEP 3</span>縦と横にパリティを付ける</h2>
     <p class="desc">16ビットを4×4に並べ、<strong>行と列の両方</strong>にパリティを付けると、<strong>誤りの位置まで特定できます</strong>。</p>

@@ -104,6 +104,96 @@
   /* ---------- STEP3 水平垂直パリティ ---------- */
   let g = [[1, 0, 1, 1], [0, 1, 1, 0], [1, 1, 0, 1], [0, 0, 1, 1]];
   let gErr = null, gShow = false;
+
+  /* ---------- 体験：自分の文字を送る ---------- */
+  const MY = { sent: [], recv: [], flips: [], code: 65 };
+
+  function toBits7(n) {
+    const a = [];
+    for (let i = 6; i >= 0; i--) a.push((n >> i) & 1);
+    return a;
+  }
+  function fromBits7(a) { return a.reduce(function (x, b) { return x * 2 + b; }, 0); }
+  function showChar(n) {
+    if (n === 32) return '␣（空白）';
+    if (n < 32 || n === 127) return '制御文字（画面に出ない文字）';
+    return '「' + String.fromCharCode(n) + '」';
+  }
+
+  function setMyChar(ch) {
+    const c = ch.charCodeAt(0);
+    if (isNaN(c) || c > 127) {
+      const n = $('myCode'); n.className = 'note ng';
+      n.innerHTML = 'この文字は<strong>7ビットでは表せません</strong>（ひらがな・漢字・絵文字は、もっと多くのビットを使います）。' +
+        '半角の英数字や記号を入れてください。';
+      $('myBits').innerHTML = ''; $('myCnt').textContent = ''; $('myNote').innerHTML = '';
+      return;
+    }
+    MY.code = c;
+    const d = toBits7(c);
+    MY.sent = d.concat([parityOf(d)]);
+    MY.recv = MY.sent.slice();
+    MY.flips = [];
+    drawMy();
+  }
+
+  function drawMy() {
+    const d = MY.sent.slice(0, 7);
+    const n0 = $('myCode'); n0.className = 'note info';
+    n0.innerHTML = '文字 ' + showChar(MY.code) + ' の文字コードは <strong>' + MY.code + '</strong>（10進法）＝ ' +
+      '<span class="mono">' + d.join('') + '</span>（2進法7桁）。' +
+      '1の個数は <strong>' + ones(d) + '</strong> 個なので、' + (even ? '偶数' : '奇数') + 'パリティのビットは <strong>' +
+      MY.sent[7] + '</strong> になります。';
+
+    const box = $('myBits'); box.innerHTML = '';
+    MY.recv.forEach(function (v, i) {
+      const b = document.createElement('button');
+      b.className = 'bit' + (v ? ' on' : '') + (i === 7 ? ' par' : '') + (MY.flips.indexOf(i) >= 0 ? ' flip' : '');
+      b.textContent = v;
+      b.title = i === 7 ? 'パリティビット' : (i + 1) + 'ビット目';
+      b.addEventListener('click', function () {
+        MY.recv[i] = 1 - MY.recv[i];
+        const k = MY.flips.indexOf(i);
+        if (k >= 0) MY.flips.splice(k, 1); else MY.flips.push(i);
+        drawMy();
+      });
+      box.appendChild(b);
+    });
+    $('myCnt').textContent = '受け取った8ビットの中の1の個数：' + ones(MY.recv) + ' 個';
+
+    const okParity = (ones(MY.recv) % 2 === 0) === even;
+    const same = MY.recv.every(function (v, i) { return v === MY.sent[i]; });
+    const got = fromBits7(MY.recv.slice(0, 7));
+    const n = $('myNote');
+    if (same) {
+      n.className = 'note ok';
+      n.innerHTML = 'まだ化けていません。ビットを押すと、途中で1と0が入れかわった状態を作れます。';
+      return;
+    }
+    if (okParity) {
+      n.className = 'note ng';
+      n.innerHTML = '<strong>誤りを見つけられませんでした。</strong>1の個数は ' + ones(MY.recv) + ' 個で、' +
+        (even ? '偶数' : '奇数') + 'のままだからです。<br>' +
+        '受け取った側は ' + showChar(got) + '（コード ' + got + '）を、<strong>正しく届いたと思って受け取ってしまいます</strong>。' +
+        '送ったのは ' + showChar(MY.code) + ' でした。<br>' +
+        '<strong>パリティチェックは、偶数個の誤りを見のがします。</strong>';
+    } else {
+      n.className = 'note ok';
+      n.innerHTML = '<strong>誤りを検出しました。</strong>1の個数が ' + ones(MY.recv) + ' 個で、' +
+        (even ? '偶数' : '奇数') + 'になっていないからです。<br>' +
+        'ただし<strong>どのビットが化けたかまでは分かりません</strong>ので、送り直してもらうことになります。' +
+        '（位置まで知りたいときは STEP 3 の縦横パリティ）';
+    }
+  }
+
+  function myFlip(k) {
+    MY.recv = MY.sent.slice(); MY.flips = [];
+    const idx = [0, 1, 2, 3, 4, 5, 6, 7];
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
+    for (let i = 0; i < k; i++) { MY.recv[idx[i]] = 1 - MY.recv[idx[i]]; MY.flips.push(idx[i]); }
+    drawMy();
+  }
+
   function fullGrid() {
     const out = g.map(row => row.concat([row.reduce((a, b) => a ^ b, 0)]));
     const last = [];
@@ -214,6 +304,20 @@
   function drawAll() { drawBits1(); resetRecv(); }
 
   function init() {
+    if ($('myChar')) {
+      setMyChar('A');
+      $('myChar').addEventListener('input', function () {
+        const v = $('myChar').value;
+        if (v) setMyChar(v[0]);
+      });
+      document.querySelectorAll('[data-mc]').forEach(function (b) {
+        b.addEventListener('click', function () { $('myChar').value = b.dataset.mc; setMyChar(b.dataset.mc); });
+      });
+      $('myFlip1').addEventListener('click', function () { myFlip(1); });
+      $('myFlip2').addEventListener('click', function () { myFlip(2); });
+      $('myRestore').addEventListener('click', function () { MY.recv = MY.sent.slice(); MY.flips = []; drawMy(); });
+    }
+
     $('modeEven').addEventListener('click', () => { even = true; answered = false; $('pFb').hidden = true; drawAll(); });
     $('modeOdd').addEventListener('click', () => { even = false; answered = false; $('pFb').hidden = true; drawAll(); });
     document.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => answerParity(+b.dataset.p)));

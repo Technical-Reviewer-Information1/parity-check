@@ -6,7 +6,7 @@
 <title>パリティチェック｜情報Ⅰ共通テスト対策問題集</title>
 <meta name="description" content="1ビット足すだけで誤りに気づける、という工夫です。実際にビットを反転させて、検出できる場合とできない場合を確かめましょう。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%2315181c%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-size=%2218%22 font-family=%22monospace%22 fill=%22%23fff%22 text-anchor=%22middle%22%3E01%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=1b60c856">
+<link rel="stylesheet" href="css/style.css?v=bdbb3cb0">
 <link rel="stylesheet" href="css/app.css?v=d88605f2">
 </head>
 <body>
@@ -70,6 +70,31 @@
       <strong>ここが最重要。</strong>パリティチェックで検出できるのは<strong>誤りが奇数個のときだけ</strong>です。
       2個・4個…と偶数個変わると、1の個数の偶奇が元にもどってしまい、<strong>誤りに気づけません</strong>。
       また、<strong>どのビットが誤ったかは特定できず、訂正もできません</strong>。
+    </div>
+  </section>
+
+  <section class="step" id="stepMine">
+    <h2><span class="no">体験</span>自分の文字を送ってみる</h2>
+    <p class="desc">好きな1文字を入れると、その<strong>文字コード（7ビット）</strong>にパリティビットが付きます。
+      途中でビットを化けさせると、受け取った側で<strong>何の文字になってしまうか</strong>まで分かります。</p>
+    <div class="panel">
+      <div class="btn-row" style="flex-wrap:wrap;align-items:flex-end">
+        <label class="fld" for="myChar" style="margin:0">送りたい文字（半角の英数字・記号）<br>
+          <input type="text" id="myChar" class="mono pin" maxlength="1" value="A" style="width:5em"></label>
+        <button class="btn" data-mc="A">A</button>
+        <button class="btn" data-mc="a">a</button>
+        <button class="btn" data-mc="0">0</button>
+        <button class="btn" data-mc="?">?</button>
+      </div>
+      <div class="note" id="myCode" style="margin-top:12px"></div>
+      <div class="bitrow" id="myBits" style="margin-top:14px"></div>
+      <div class="cnt" id="myCnt"></div>
+      <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
+        <button class="btn" id="myFlip1">1ビット化けさせる</button>
+        <button class="btn" id="myFlip2">2ビット化けさせる</button>
+        <button class="btn ghost" id="myRestore">送ったままに戻す</button>
+      </div>
+      <div class="note" id="myNote" style="margin-top:12px"></div>
     </div>
   </section>
 
@@ -139,12 +164,14 @@
         <li>STEP 1 でパリティビットを各自に決めさせ、1の個数を数える手順を共有する。</li>
         <li>STEP 3 で2ビット反転させ、検出できないことを実演すると印象に残る。</li>
         <li>STEP 4 の水平垂直パリティは、本文の問2と同じ形式でそのまま使える。</li>
+        <li>「体験」で各自の名前の頭文字を送らせ、2ビット化けさせて「別の文字として受け取られる」ことを見せる。</li>
       </ul>
       <h3 style="margin-top:12px">探究で</h3>
       <ul>
         <li>パリティビットを増やすと、どこまで誤りを訂正できるようになるかを調べる。</li>
         <li>実際の通信で使われている誤り検出・訂正のしくみ（CRCなど）を調べて比べる。</li>
         <li>誤りが起きる原因（ノイズなど）と、その対策を考える。</li>
+        <li>半角文字を1つ選び、1ビット／2ビット化けたときに何の文字になるかを調べ、見のがしやすい組み合わせを探す。</li>
       </ul>
     </div>
   </section>
@@ -157,6 +184,6 @@
 
 <script src="js/tools.js?v=c07db610"></script>
 <script src="js/terms.js?v=92038844"></script>
-<script src="js/app.js?v=021d8043"></script>
+<script src="js/app.js?v=76004ef0"></script>
 </body>
 </html>
