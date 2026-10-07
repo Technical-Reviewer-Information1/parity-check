@@ -343,5 +343,19 @@
     drawAll(); drawGrid(); startQuiz();
     window.Terms.attach();
   }
+  if (window.Predict) Predict.make('pdP', {
+    q: '1ビットのパリティチェックで、<strong>2ビットが同時に</strong>化けてしまいました。受け取った側は誤りに気づけるでしょうか？',
+    type: 'pick',
+    ch: ['1ビットのときと同じように気づける', '気づけない', '気づいたうえで自動的に直せる', 'データそのものが消える'],
+    answer: function () { return 1; },
+    show: function () {
+      return '1か所化けると1の個数の<strong>偶数・奇数が入れかわる</strong>ので気づけます。' +
+             'ところが2か所化けると偶奇が<strong>元に戻ってしまう</strong>ので、正しく届いたように見えてしまいます。';
+    },
+    why: '1ビットのパリティで気づけるのは、化けたビットが<strong>奇数個</strong>のときだけです。' +
+         'だから STEP 3 のように<strong>縦と横の両方</strong>にパリティを付けて、化けた場所を行と列で特定できるようにします。' +
+         'こうすると1か所の誤りは「見つける」だけでなく「直す」こともできます。'
+  });
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
